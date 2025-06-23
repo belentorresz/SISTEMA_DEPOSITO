@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - TLA Company</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .perfil-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .seccion-perfil {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .seccion-perfil:last-child {
+            border-bottom: none;
+        }
+        
+        .titulo-seccion {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .campo-perfil {
+            margin-bottom: 15px;
+        }
+        
+        .campo-perfil label {
+            display: block;
+            font-weight: bold;
+            color: #2980b9;
+            margin-bottom: 5px;
+        }
+        
+        .campo-perfil p {
+            margin: 0;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+        
+        .boton-actualizar {
+            display: block;
+            width: 200px;
+            margin: 30px auto 0;
+            text-align: center;
+        }
+
+        .lista-cuentas {
+            margin-top: 20px;
+        }
+
+        /* Estilos para la validación de contraseña */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .password-wrapper input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            padding-right: 35px;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 16px;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .password-toggle:hover {
+            color: #2980b9;
+        }
+        
+        .password-toggle .eye-icon {
+            transition: opacity 0.3s;
+        }
+        
+        .password-toggle .eye-icon.hidden {
+            opacity: 0.5;
+        }
+        
+        #password-strength {
+            font-size: 13px;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+
+        .requirement {
+            color: #e74c3c;
+            margin: 3px 0;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .requirement.valid {
+            color: #21C7B1;
+        }
+
+        .requirement:before {
+            content: "✗";
+            margin-right: 8px;
+        }
+
+        .requirement.valid:before {
+            content: "✓";
+        }
+
+        .password-feedback {
+            margin-top: 5px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .perfil-container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="./logo.png" alt="Banco" class="logo">
+            <span class="bank-name">TLA Co.</span>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="./inicio.html">Inicio</a></li>
+                <li><a href="./cuentas.html">Cuentas</a></li>
+                <li><a href="./realizar-deposito.html">Depositar</a></li>
+                <li class="right-icons">
+                    <button class="profile-btn" onclick="location.href='perfil.html'">👤</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="main-content">
+        <div class="perfil-container">
+            <div class="seccion-perfil">
+                <h2 class="titulo-seccion" id="nombre-completo"></h2>
+                
+                <div class="campo-perfil">
+                    <label>Nombre</label>
+                    <p id="info-nombres"></p>
+                </div>
+                
+                <div class="campo-perfil">
+                    <label>Apellidos</label>
+                    <p id="info-apellidos"></p>
+                </div>
+                
+                <div class="campo-perfil">
+                    <label>DNI</label>
+                    <p id="info-dni"></p>
+                </div>
+                
+                <div class="campo-perfil">
+                    <label>Dirección</label>
+                    <p id="info-direccion"></p>
+                </div>
+                
+                <div class="campo-perfil">
+                    <label>Teléfono</label>
+                    <p id="info-celular"></p>
+                </div>
+                
+                <div class="campo-perfil">
+                    <label>Correo Electrónico</label>
+                    <p id="info-email"></p>
+                </div>
+            </div>
+            
+            <div class="seccion-perfil">
+                <h2 class="titulo-seccion">Actualizar Mis Datos</h2>
+                
+                <form id="formActualizarPerfil">
+                    <div class="campo-perfil">
+                        <label for="nuevo-nombre">Nombre</label>
+                        <input type="text" onkeypress="return soloLetras(event)" id="nuevo-nombre" class="form-input" placeholder="Nuevo nombre">
+                    </div>
+                    
+                    <div class="campo-perfil">
+                        <label for="nuevos-apellidos">Apellidos</label>
+                        <input type="text" onkeypress="return soloLetras(event)" id="nuevos-apellidos" class="form-input" placeholder="Nuevos apellidos">
+                    </div>
+                    
+                    <div class="campo-perfil">
+                        <label for="nueva-direccion">Dirección</label>
+                        <input type="text" id="nueva-direccion" class="form-input" placeholder="Nueva dirección">
+                    </div>
+                    
+                    <div class="campo-perfil">
+                        <label for="nuevo-telefono">Teléfono</label>
+                        <input type="tel" onkeypress="return soloNumeros(event)" id="nuevo-telefono" class="form-input" placeholder="Nuevo teléfono">
+                    </div>
+                    
+                    <div class="campo-perfil">
+                        <label for="nueva-contrasena">Nueva Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="nueva-contrasena" name="nueva-contrasena" 
+                                   class="form-input"
+                                   placeholder="Dejar en blanco para no cambiar"
+                                   title="La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y un caracter especial (. _ ! # $ % & /)">
+                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility(this, 'nueva-contrasena')" aria-label="Mostrar contraseña">
+                                <span class="eye-icon">👁️</span>
+                            </button>
+                        </div>
+                        <div id="password-strength">
+                            <div class="requirement" data-requirement="length">Mínimo 8 caracteres</div>
+                            <div class="requirement" data-requirement="lowercase">Al menos 1 letra minúscula</div>
+                            <div class="requirement" data-requirement="uppercase">Al menos 1 letra mayúscula</div>
+                            <div class="requirement" data-requirement="number">Al menos 1 número</div>
+                            <div class="requirement" data-requirement="special">Al menos 1 caracter especial (. _ ! # $ % & /)</div>
+                        </div>
+                        <div class="password-feedback">La contraseña debe cumplir con todos los requisitos de seguridad</div>
+                    </div>
+                    
+                    <div class="campo-perfil">
+                        <label for="confirmar-contrasena">Confirmar Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="confirmar-contrasena" class="form-input" placeholder="Confirmar nueva contraseña">
+                            <button type="button" class="password-toggle" onclick="togglePasswordVisibility(this, 'confirmar-contrasena')" aria-label="Mostrar contraseña">
+                                <span class="eye-icon">👁️</span>
+                            </button>
+                        </div>
+                        <div id="confirmacion-error" class="error-message">Las contraseñas no coinciden</div>
+                    </div>
+                    
+                    <button type="submit" class="button boton-actualizar">Actualizar Datos</button>
+                </form>
+            </div>
+            <div class="campo-perfil" style="text-align: center; margin-top: 30px;">
+                <button onclick="cerrarSesion()" class="button secondary">Cerrar Sesión</button>
+            </div>
+        </div>  
+    </div>
+    
+    <footer>
+        <p><strong>TLA Company</strong></p>
+        <p>Mantente Actualizado</p>
+    </footer>
+
+    <script>
+        function soloLetras(e){
+            var key = e.keyCode || e.which;
+            var tecla = String.fromCharCode(key).toLowerCase();
+            var letras = "abcdefghijklmnñopqrstuvwxyz ";
+            var especiales = [8, 37, 39, 46]; // backspace, flecha izquierda, flecha derecha, suprimir
+            
+            if (especiales.indexOf(key) !== -1) {
+                return true;
+            }
+
+            // Permitir espacio solo si no es el primer carácter y no hay doble espacio
+            if (key === 32) { // código ASCII para espacio
+                var input = e.target;
+                if (input.selectionStart === 0 || input.value[input.selectionStart-1] === ' ') {
+                    return false;
+                }
+            }
+
+            if (letras.indexOf(tecla) === -1) {
+                return false;
+            }
+            return true;
+        }
+
+        function soloNumeros(e){
+            var key = e.keyCode || e.which;
+            var tecla = String.fromCharCode(key).toLowerCase();
+            var letras = "1234567890";
+            var especiales = [8, 37, 39, 46];
+            if (especiales.indexOf(key) !== -1){
+                return true;
+            }
+
+            if (letras.indexOf(tecla) === -1){
+                return false;
+            }
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+            
+            if (!usuario) {
+                alert('No se encontraron datos de usuario. Serás redirigido al inicio.');
+                window.location.href = '/inicio.html';
+                return;
+            }
+
+            // Mostrar datos actuales
+            document.getElementById('nombre-completo').textContent = `${usuario.nombres} ${usuario.apellidos}`;
+            document.getElementById('info-nombres').textContent = usuario.nombres || 'No especificado';
+            document.getElementById('info-apellidos').textContent = usuario.apellidos || 'No especificado';
+            document.getElementById('info-dni').textContent = usuario.dni || 'No especificado';
+            document.getElementById('info-direccion').textContent = usuario.direccion || 'No especificado';
+            document.getElementById('info-celular').textContent = usuario.celular || 'No especificado';
+            document.getElementById('info-email').textContent = usuario.email || 'No especificado';
+
+            // Rellenar formulario con datos actuales
+            document.getElementById('nuevo-nombre').value = usuario.nombres || '';
+            document.getElementById('nuevos-apellidos').value = usuario.apellidos || '';
+            document.getElementById('nueva-direccion').value = usuario.direccion || '';
+            document.getElementById('nuevo-telefono').value = usuario.celular || '';
+        });
+
+        // Función para alternar visibilidad de contraseña
+        function togglePasswordVisibility(button, inputId) {
+            const passwordInput = document.getElementById(inputId);
+            const eyeIcon = button.querySelector('.eye-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('hidden');
+            }
+            
+            passwordInput.focus();
+        }
+
+        // Función para validar la contraseña en tiempo real
+        function validarPassword(password) {
+            const requirements = {
+                length: password.length >= 8,
+                lowercase: /[a-z]/.test(password),
+                uppercase: /[A-Z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[._!#$%&/]/.test(password)
+            };
+            
+            return requirements;
+        }
+
+        // Función para actualizar la visualización de requisitos
+        function actualizarRequisitosPassword(password) {
+            const requirements = validarPassword(password);
+            let todosCumplidos = true;
+            
+            for (const [key, value] of Object.entries(requirements)) {
+                const element = document.querySelector(`.requirement[data-requirement="${key}"]`);
+                if (value) {
+                    element.classList.add('valid');
+                } else {
+                    element.classList.remove('valid');
+                    todosCumplidos = false;
+                }
+            }
+            
+            return todosCumplidos;
+        }
+
+        // Validación en tiempo real de la contraseña
+        document.getElementById('nueva-contrasena').addEventListener('input', function() {
+            const password = this.value;
+            
+            // Solo validar si hay contenido
+            if (password.length > 0) {
+                actualizarRequisitosPassword(password);
+            } else {
+                // Resetear validaciones si el campo está vacío
+                document.querySelectorAll('.requirement').forEach(el => {
+                    el.classList.remove('valid');
+                });
+            }
+            
+            // Validar coincidencia de contraseñas si el campo de confirmación no está vacío
+            if (document.getElementById('confirmar-contrasena').value) {
+                validarCoincidenciaContrasenas();
+            }
+        });
+
+        // Validar coincidencia de contraseñas
+        document.getElementById('confirmar-contrasena').addEventListener('input', validarCoincidenciaContrasenas);
+
+        function validarCoincidenciaContrasenas() {
+            const nuevaContrasena = document.getElementById('nueva-contrasena').value;
+            const confirmacion = document.getElementById('confirmar-contrasena').value;
+            const errorElement = document.getElementById('confirmacion-error');
+            
+            if (confirmacion && nuevaContrasena !== confirmacion) {
+                errorElement.style.display = 'block';
+                return false;
+            } else {
+                errorElement.style.display = 'none';
+                return true;
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('formActualizarPerfil').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const nuevaContrasena = document.getElementById('nueva-contrasena').value;
+            const confirmarContrasena = document.getElementById('confirmar-contrasena').value;
+            
+            // Validar solo si se está cambiando la contraseña
+            if (nuevaContrasena) {
+                // Validar requisitos de contraseña
+                const passwordValida = actualizarRequisitosPassword(nuevaContrasena);
+                
+                // Validar coincidencia de contraseñas
+                const coincidenciaValida = validarCoincidenciaContrasenas();
+                
+                if (!passwordValida || !coincidenciaValida) {
+                    if (!passwordValida) {
+                        alert('La contraseña no cumple con todos los requisitos de seguridad');
+                    }
+                    if (!coincidenciaValida) {
+                        alert('Las contraseñas no coinciden');
+                    }
+                    return;
+                }
+            }
+            
+            try {
+                const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+                const datosActualizacion = {
+                    dni: usuario.dni,
+                    nombres: document.getElementById('nuevo-nombre').value,
+                    apellidos: document.getElementById('nuevos-apellidos').value,
+                    direccion: document.getElementById('nueva-direccion').value,
+                    celular: document.getElementById('nuevo-telefono').value,
+                    contrasena: nuevaContrasena || undefined // Enviamos undefined si no hay nueva contraseña
+                };
+                
+                const response = await fetch('http://localhost:3000/api/actualizar-usuario', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(datosActualizacion)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error al actualizar');
+                }
+
+                const result = await response.json();
+                
+                // Actualizar datos en sessionStorage
+                sessionStorage.setItem('usuario', JSON.stringify(result.usuario));
+                alert('Datos actualizados correctamente');
+                window.location.reload();
+                
+            } catch (error) {
+                console.error('Error al actualizar:', error);
+                alert(`Error: ${error.message}`);
+            }
+        });
+
+        function cerrarSesion() {
+            // 1. Eliminar datos de usuario del sessionStorage
+            sessionStorage.removeItem('usuario');
+            
+            // 2. Opcional: Eliminar cualquier otro dato relacionado con la sesión
+            sessionStorage.removeItem('origenCreacionCuenta');
+            sessionStorage.removeItem('depositoData');
+            
+            // 3. Redirigir a la página de inicio de sesión
+            window.location.href = './inicio.html';
+            
+            // 4. Opcional: Forzar recarga para limpiar cualquier estado
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>

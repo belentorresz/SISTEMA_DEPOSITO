@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Cliente - TLA Company</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="./logo.png" alt="Banco" class="logo">
+            <span class="bank-name">TLA Co.</span>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="./inicio.html">Inicio</a></li>
+                <li><a href="cuentas.html">Cuentas</a></li>
+                <li><a href="./deposito.html">Depositar</a></li>
+                <li class="right-icons">
+                    <button class="profile-btn" onclick="location.href='./perfil.html'">👤</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    <div class="main-content">
+        <div class="confirmacion-container">
+            <h1>¡Depósito confirmado!</h1>
+            
+            <div class="resumen-deposito">
+                <div class="detalle-deposito">
+                    <span class="check-icon">✓</span>
+                    <span class="detalle-texto">Número de cuenta: <span id="confirm-cuenta"></span></span>
+                </div>
+                <div class="detalle-deposito checked">
+                    <span class="check-icon">✓</span>
+                    <span class="detalle-texto">Monto: 
+                        <span id="confirm-monto"></span>
+                        <span id="confirm-monto-soles" style="display: none;">
+                            (Equivalente a S/ <span id="confirm-monto-soles-valor"></span>)
+                        </span>
+                    </span>
+                </div>
+                <div class="detalle-deposito">
+                    <span class="check-icon">✓</span>
+                    <span class="detalle-texto">Método de pago: <span id="confirm-metodo"></span></span>
+                </div>
+                <div class="detalle-deposito">
+                    <span class="check-icon">✓</span>
+                    <span class="detalle-texto">Fecha de depósito: <span id="confirm-fecha"></span></span>
+                </div>
+            </div>
+            
+            <p class="mensaje-exito">Su depósito ha sido procesado exitosamente.</p>
+            
+            <div class="botones-accion">
+                <button onclick="location.href='./realizar-deposito.html'" class="button">Hacer otro depósito</button>
+                <button onclick="location.href='./inicio.html'" class="button secondary">Volver al inicio</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p><strong>TLA Company</strong></p>
+        <p>Mantente Actualizado</p>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const depositoData = JSON.parse(sessionStorage.getItem('depositoData'));
+            
+            if (!depositoData) {
+                window.location.href = './realizar-deposito.html';
+                return;
+            }
+            
+            // Mostrar datos básicos
+            const cuentaOculta = '****' + depositoData.cuenta.slice(-4);
+            document.getElementById('confirm-cuenta').textContent = cuentaOculta;
+            document.getElementById('confirm-metodo').textContent = depositoData.metodo;
+            
+            // Formatear fecha
+            const [year, month, day] = depositoData.fecha.split('-');
+            document.getElementById('confirm-fecha').textContent = `${day}/${month}/${year}`;
+            
+            // Mostrar monto y conversión si aplica
+            const simboloOrigen = depositoData.moneda === 'dolares' ? '$' : 'S/';
+            const simboloDestino = depositoData.monedaDestino === 'PEN' ? 'S/' : '$';
+            
+            document.getElementById('confirm-monto').innerHTML = `
+                ${simboloOrigen}${depositoData.monto} ${depositoData.moneda === 'dolares' ? 'USD' : 'PEN'}<br>
+            `;
+            
+            if (depositoData.moneda === 'dolares' || depositoData.moneda === 'soles') {
+                document.getElementById('confirm-monto-soles-valor').textContent = 
+                    depositoData.montoConvertido;
+                document.getElementById('confirm-monto-soles').style.display = 'block';
+                
+                const textoConversion = depositoData.moneda === 'dolares' ? 
+                    `(Equivalente a S/ ${depositoData.montoConvertido})` : 
+                    `(Equivalente a $ ${depositoData.montoConvertido})`;
+                    
+                document.getElementById('confirm-monto-soles').innerHTML = textoConversion;
+            }
+            
+            // Mostrar información del titular si está disponible
+            if (depositoData.cliente) {
+                const titularInfo = document.createElement('div');
+                titularInfo.className = 'detalle-deposito';
+                titularInfo.innerHTML = `
+                    <span class="check-icon">✓</span>
+                    <span class="detalle-texto">Titular: ${depositoData.cliente.nombres} ${depositoData.cliente.apellidos}</span>
+                `;
+                document.querySelector('.resumen-deposito').appendChild(titularInfo);
+            }
+            
+            // Mostrar nuevo saldo si está disponible
+            if (depositoData.saldoActual) {
+                const saldoInfo = document.createElement('div');
+                saldoInfo.className = 'detalle-deposito';
+                saldoInfo.innerHTML = `
+                    <span class="check-icon">✓</span>
+                    <span class="detalle-texto">Nuevo saldo: ${depositoData.monedaDestino === 'PEN' ? 'S/' : '$'} ${depositoData.saldoActual}</span>
+                `;
+                document.querySelector('.resumen-deposito').appendChild(saldoInfo);
+            }
+        });
+    </script>
+
+    <script src="./script.js"></script>
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Cuentas - TLA Company</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .cuenta-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin: 20px auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .cuenta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #6568e5;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .moneda-simbolo {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .saldo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .saldo.positivo { color: #21C7B1; }
+        .saldo.negativo { color: #e74c3c; }
+        .movimientos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .movimientos-table th {
+            background-color: #6568e5;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+        .movimientos-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .ingreso { color: #21C7B1; }
+        .egreso { color: #e74c3c; }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #666;
+        }
+        .error-container {
+            text-align: center;
+            padding: 40px;
+            color: #e74c3c;
+        }
+        .no-cuentas {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            max-width: 800px;
+            margin: 20px auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .no-cuentas a {
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        #boton-crear-cuenta-container {
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .no-cuentas button {
+            margin-top: 20px;
+        }
+        
+        .movimientos-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Estilos para el botón de descarga */
+        .download-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 10px;
+            transition: transform 0.2s;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .download-btn img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="./logo.png" alt="Banco" class="logo">
+            <span class="bank-name">TLA Co.</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="./inicio.html">Inicio</a></li>
+                <li><a href="./cuentas.html" class="active">Cuentas</a></li>
+                <li><a href="./realizar-deposito.html">Depositar</a></li>
+                <li class="right-icons">
+                    <button class="profile-btn" onclick="location.href='./perfil.html'">👤</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="main-content">
+        <h1>Mis Cuentas Bancarias</h1>
+        
+        <div id="loading" class="loading">
+            <p>🔄 Cargando tus cuentas...</p>
+        </div>
+        
+        <div id="cuentas-container"></div>
+        <div id="boton-crear-cuenta-container" style="text-align: center; margin: 20px 0;"></div>
+        
+    </div>
+
+    <script>
+        // Función para generar PDF
+        async function generarPDF(cuentas) {
+            // Crear un objeto jsPDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Logo de la empresa
+            const logoUrl = './logo.png';
+            const logoResponse = await fetch(logoUrl);
+            const logoBlob = await logoResponse.blob();
+            const logoDataUrl = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(logoBlob);
+            });
+            
+            // Configuración inicial del PDF
+            doc.setFont('helvetica');
+            doc.setFontSize(12);
+            
+            // Encabezado del PDF
+            doc.addImage(logoDataUrl, 'PNG', 10, 10, 30, 30);
+            doc.setFontSize(20);
+            doc.setTextColor(40, 53, 147);
+            doc.text('TLA Company - Estado de Cuentas', 50, 20);
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            
+            // Información del cliente
+            const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+            const fecha = new Date().toLocaleDateString('es-PE', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            doc.text(`Cliente: ${usuario.nombres} ${usuario.apellidos}`, 14, 50);
+            doc.text(`DNI: ${usuario.dni}`, 14, 60);
+            doc.text(`Fecha de emisión: ${fecha}`, 14, 70);
+            
+            // Generar contenido para cada cuenta
+            let yPos = 90;
+            
+            for (const cuenta of cuentas) {
+                // Encabezado de cuenta
+                doc.setFontSize(14);
+                doc.setTextColor(40, 53, 147);
+                doc.text(`Cuenta ${cuenta.tipo_moneda === 'PEN' ? 'en Soles' : 'en Dólares'}`, 14, yPos);
+                
+                // Detalles de la cuenta
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                yPos += 10;
+                doc.text(`Número de cuenta: ${cuenta.numero_cuenta}`, 20, yPos);
+                yPos += 7;
+                doc.text(`Tipo de moneda: ${cuenta.tipo_moneda === 'PEN' ? 'Soles Peruanos (PEN)' : 'Dólares Americanos (USD)'}`, 20, yPos);
+                yPos += 7;
+                doc.text(`Saldo actual: ${cuenta.tipo_moneda === 'PEN' ? 'S/' : '$'} ${parseFloat(cuenta.saldo).toFixed(2)}`, 20, yPos);
+                yPos += 10;
+                
+                // Tabla de movimientos
+                doc.setFontSize(12);
+                doc.setTextColor(40, 53, 147);
+                doc.text('Últimos movimientos:', 14, yPos);
+                yPos += 10;
+                
+                // Obtener movimientos para esta cuenta
+                const movimientos = await obtenerMovimientos(cuenta.id);
+                
+                if (movimientos.length > 0) {
+                    // Configurar tabla
+                    const headers = ["Fecha", "Descripción", "Tipo", "Monto", "Saldo"];
+                    const rows = movimientos.map(mov => {
+                        const fecha = new Date(mov.fecha).toLocaleDateString('es-PE', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        const tipo = mov.tipo === 'DEPOSITO' ? 'Depósito' : 'Retiro';
+                        const simbolo = mov.tipo === 'DEPOSITO' ? '+' : '-';
+                        const simboloMoneda = mov.tipo_moneda === 'PEN' ? 'S/' : '$';
+                        const monto = `${simbolo} ${simboloMoneda}${parseFloat(mov.monto).toFixed(2)}`;
+                        const saldo = `${simboloMoneda}${parseFloat(mov.saldo_final).toFixed(2)}`;
+                        
+                        return [fecha, mov.descripcion || mov.metodo_pago || '-', tipo, monto, saldo];
+                    });
+                    
+                    // Crear tabla
+                    doc.autoTable({
+                        startY: yPos,
+                        head: [headers],
+                        body: rows,
+                        margin: { left: 14 },
+                        headStyles: {
+                            fillColor: [101, 104, 229],
+                            textColor: [255, 255, 255],
+                            fontSize: 10
+                        },
+                        bodyStyles: {
+                            fontSize: 9
+                        },
+                        columnStyles: {
+                            0: { cellWidth: 30 },
+                            1: { cellWidth: 50 },
+                            2: { cellWidth: 25 },
+                            3: { cellWidth: 30 },
+                            4: { cellWidth: 30 }
+                        },
+                        didDrawCell: (data) => {
+                            // Colorear montos de ingresos/egresos
+                            if (data.column.index === 3) {
+                                const cellValue = data.cell.raw;
+                                if (cellValue.startsWith('+')) {
+                                    doc.setTextColor(33, 199, 177); // Verde para ingresos
+                                } else if (cellValue.startsWith('-')) {
+                                    doc.setTextColor(231, 76, 60); // Rojo para egresos
+                                }
+                                doc.text(cellValue, data.cell.x + 3, data.cell.y + 7);
+                                doc.setTextColor(0, 0, 0); // Volver a negro
+                                return false; // Evitar dibujo automático
+                            }
+                        }
+                    });
+                    
+                    yPos = doc.lastAutoTable.finalY + 15;
+                } else {
+                    doc.text('No hay movimientos registrados', 20, yPos);
+                    yPos += 15;
+                }
+                
+                // Agregar página si estamos cerca del final
+                if (yPos > 250) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+            }
+            
+            // Pie de página
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text('© TLA Company - Todos los derechos reservados', 105, 285, { align: 'center' });
+            
+            // Descargar el PDF
+            doc.save(`Estado_de_Cuentas_${usuario.dni}_${new Date().toISOString().split('T')[0]}.pdf`);
+        }
+        
+        // Función para obtener movimientos (similar a cargarMovimientos pero devuelve una promesa)
+        async function obtenerMovimientos(cuentaId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/movimientos-cuenta?cuenta_id=${cuentaId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const { movimientos } = await response.json();
+                return movimientos || [];
+            } catch (error) {
+                console.error(`Error obteniendo movimientos para cuenta ${cuentaId}:`, error);
+                return [];
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Verificar sesión activa
+            const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+            
+            if (!usuario || !usuario.dni) {
+                alert('❌ Debes iniciar sesión para acceder a esta página');
+                window.location.href = 'inicio.html';
+                return;
+            }
+
+            try {
+                // 2. Obtener cuentas del backend
+                const response = await fetch(`http://localhost:3000/api/cuentas-usuario?dni=${usuario.dni}`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const { cuentas } = await response.json();
+                document.getElementById('loading').style.display = 'none';
+
+                // 3. Mostrar botón de crear cuenta si faltan tipos de cuenta
+                mostrarBotonCrearCuenta(cuentas);
+
+                // 4. Mostrar mensaje si no hay cuentas
+                if (!cuentas || cuentas.length === 0) {
+                    mostrarSinCuentas();
+                    return;
+                }
+
+                // 5. Mostrar cada cuenta con sus datos
+                cuentas.forEach(async cuenta => {
+                    const simbolo = cuenta.tipo_moneda === 'PEN' ? 'S/' : '$';
+                    const saldoClass = cuenta.saldo >= 0 ? 'positivo' : 'negativo';
+                    const fechaCreacion = new Date(cuenta.fecha_creacion).toLocaleDateString('es-PE', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    // Crear tarjeta de cuenta
+                    const cuentaCard = document.createElement('div');
+                    cuentaCard.className = 'cuenta-card';
+                    cuentaCard.innerHTML = `
+                        <div class="cuenta-header">
+                            <h2>Cuenta ${cuenta.tipo_moneda === 'PEN' ? 'en Soles' : 'en Dólares'}</h2>
+                            <div class="header-actions">
+                                <div>
+                                    <span class="moneda-simbolo">${simbolo}</span>
+                                    <span class="saldo ${saldoClass}">${cuenta.saldo}</span>
+                                </div>
+                                <button class="download-btn" title="Descargar PDF" onclick="descargarPDF('${cuenta.id}')">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/3132/3132693.png" alt="Descargar PDF">
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <p><strong>Número de cuenta:</strong> ${cuenta.numero_cuenta}</p>
+                        <p><strong>Tipo de moneda:</strong> ${cuenta.tipo_moneda === 'PEN' ? 'Soles Peruanos (PEN)' : 'Dólares Americanos (USD)'}</p>
+                        <p><strong>Fecha de apertura:</strong> ${fechaCreacion}</p>
+                        
+                        <h3>Últimos movimientos</h3>
+                        <table class="movimientos-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción</th>
+                                    <th>Tipo</th>
+                                    <th>Monto</th>
+                                    <th>Saldo Final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movimientos-${cuenta.id}">
+                                <tr>
+                                    <td colspan="5" style="text-align:center;">Cargando movimientos...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    `;
+
+                    document.getElementById('cuentas-container').appendChild(cuentaCard);
+
+                    // Cargar movimientos para esta cuenta
+                    await cargarMovimientos(cuenta.id);
+                });
+
+                // 6. Agregar botón para descargar todas las cuentas
+                const botonDescargaGlobal = document.createElement('div');
+                botonDescargaGlobal.style.textAlign = 'center';
+                botonDescargaGlobal.style.margin = '20px 0';
+                botonDescargaGlobal.innerHTML = `
+                    <button onclick="descargarTodasLasCuentas()" class="button">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3132/3132693.png" alt="Descargar" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 8px;">
+                        Descargar todas las cuentas (PDF)
+                    </button>
+                `;
+                document.getElementById('cuentas-container').insertBefore(botonDescargaGlobal, document.getElementById('cuentas-container').firstChild);
+
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError(error);
+            }
+        });
+
+        // Función para descargar PDF de una cuenta específica
+        async function descargarPDF(cuentaId) {
+            try {
+                // Obtener datos de la cuenta
+                const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+                const response = await fetch(`http://localhost:3000/api/cuentas-usuario?dni=${usuario.dni}`);
+                const { cuentas } = await response.json();
+                const cuenta = cuentas.find(c => c.id == cuentaId);
+                
+                if (!cuenta) {
+                    throw new Error('No se encontró la cuenta');
+                }
+                
+                // Generar PDF solo para esta cuenta
+                await generarPDF([cuenta]);
+            } catch (error) {
+                console.error('Error al generar PDF:', error);
+                alert(`Error al generar el PDF: ${error.message}`);
+            }
+        }
+
+        // Función para descargar PDF de todas las cuentas
+        async function descargarTodasLasCuentas() {
+            try {
+                // Obtener todas las cuentas
+                const usuario = JSON.parse(sessionStorage.getItem('usuario'));
+                const response = await fetch(`http://localhost:3000/api/cuentas-usuario?dni=${usuario.dni}`);
+                const { cuentas } = await response.json();
+                
+                if (!cuentas || cuentas.length === 0) {
+                    throw new Error('No hay cuentas para descargar');
+                }
+                
+                // Generar PDF con todas las cuentas
+                await generarPDF(cuentas);
+            } catch (error) {
+                console.error('Error al generar PDF:', error);
+                alert(`Error al generar el PDF: ${error.message}`);
+            }
+        }
+
+        // Función para cargar movimientos de una cuenta
+        async function cargarMovimientos(cuentaId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/movimientos-cuenta?cuenta_id=${cuentaId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const { movimientos } = await response.json();
+                const tbody = document.getElementById(`movimientos-${cuentaId}`);
+                
+                if (!movimientos || movimientos.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align:center;">No hay movimientos registrados</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = movimientos.map(mov => {
+                    const fecha = new Date(mov.fecha).toLocaleDateString('es-PE', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    const claseMonto = mov.tipo === 'DEPOSITO' ? 'ingreso' : 'egreso';
+                    const simbolo = mov.tipo === 'DEPOSITO' ? '+' : '-';
+                    const simboloMoneda = mov.tipo_moneda === 'PEN' ? 'S/' : '$';
+                    
+                    return `
+                        <tr>
+                            <td>${fecha}</td>
+                            <td>${mov.descripcion || mov.metodo_pago || '-'}</td>
+                            <td>${mov.tipo === 'DEPOSITO' ? 'Depósito' : 'Retiro'}</td>
+                            <td class="${claseMonto}">${simbolo} ${simboloMoneda}${parseFloat(mov.monto).toFixed(2)}</td>
+                            <td>${simboloMoneda}${parseFloat(mov.saldo_final).toFixed(2)}</td>
+                        </tr>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error(`Error cargando movimientos para cuenta ${cuentaId}:`, error);
+                document.getElementById(`movimientos-${cuentaId}`).innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align:center;color:#e74c3c;">
+                            Error al cargar movimientos: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Función para mostrar el botón de crear cuenta si faltan tipos de cuenta
+        function mostrarBotonCrearCuenta(cuentas) {
+            const container = document.getElementById('boton-crear-cuenta-container');
+            if (!container) return;
+
+            // Verificar qué tipos de cuenta ya tiene
+            const tieneSoles = cuentas?.some(c => c.tipo_moneda === 'PEN');
+            const tieneDolares = cuentas?.some(c => c.tipo_moneda === 'USD');
+
+            // Mostrar botón solo si falta alguna cuenta
+            if (!tieneSoles || !tieneDolares) {
+                container.innerHTML = `
+                    <button onclick="irACrearCuenta()" class="button">
+                        ${!tieneSoles && !tieneDolares ? 'Crear mi primera cuenta' : 
+                        !tieneSoles ? 'Crear cuenta en Soles' : 'Crear cuenta en Dólares'}
+                    </button>
+                `;
+            } else {
+                container.innerHTML = ''; // No mostrar botón si ya tiene ambas
+            }
+        }
+
+        // Función para redirigir a crear cuenta
+        function irACrearCuenta() {
+            // Guardar en sessionStorage que venimos de cuentas.html
+            sessionStorage.setItem('origenCreacionCuenta', 'cuentas');
+            window.location.href = 'seleccionar-cuenta.html';
+        }
+
+        // Función para mostrar cuando no hay cuentas
+        function mostrarSinCuentas() {
+            const cuentasContainer = document.getElementById('cuentas-container');
+            cuentasContainer.innerHTML = `
+                <div class="no-cuentas">
+                    <p>No tienes cuentas asociadas.</p>
+                    <button onclick="irACrearCuenta()" class="button">Crear nueva cuenta</button>
+                </div>
+            `;
+        }
+
+        // Función para mostrar errores
+        function mostrarError(error) {
+            document.getElementById('loading').innerHTML = `
+                <div class="error-container">
+                    <p>⚠️ Error al cargar tus cuentas</p>
+                    <p>${error.message}</p>
+                    <button onclick="window.location.reload()" class="button">Reintentar</button>
+                </div>
+            `;
+        }
+    </script>
+    <!-- Incluir jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>

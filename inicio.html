@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - TLA Company</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+.contenedor-inicio {
+    display: flex;
+    justify-content: center;
+    align-items: stretch; /* hace que ambos hijos tengan misma altura */
+    gap: 40px;
+    max-width: 1000px;
+    margin: 60px auto;
+    padding: 20px;
+}
+
+/* Formulario */
+.formulario-acceso {
+    flex: 1;
+    max-width: 400px;
+    padding: 30px 40px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0;
+}
+
+/* Imagen alineada al costado izquierdo y del mismo alto que el formulario */
+.imagen-inicio {
+    flex: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Imagen estirada al contenedor sin deformarse */
+.imagen-inicio img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 10px;
+}
+
+        
+        .titulo-formulario {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 24px;
+            top: -10px;
+        }
+        
+        .opciones-adicionales {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .enlace-texto {
+            color: #2980b9;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .enlace-texto:hover {
+            text-decoration: underline;
+        }
+        
+        .registro-link {
+            text-align: center;
+            margin-top: 30px; 
+            padding-top: 20px; 
+            border-top: 1px solid #eee;
+            position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .contenedor-inicio {
+                flex-direction: column;
+            }
+            
+            .imagen-inicio {
+                width: 100%;
+                height: 250px; 
+            }
+            
+            .formulario-acceso {
+                width: 100%;
+                max-width: none;
+            }
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #2980b9;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(41, 128, 185, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="./logo.png" alt="Banco" class="logo">
+            <span class="bank-name">TLA Co.</span>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="./inicio.html" class="active">Inicio</a></li>
+                <li><a href="./cuentas.html">Cuentas</a></li>
+                <li class="right-icons">
+                    <button class="profile-btn" onclick="location.href='./perfil.html'">👤</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="main-content">
+        <div class="titulo-principal">
+            <h1>Gestione sus depósitos de manera segura</h1>
+            <p>Accede para gestionar tus cuentas y realizar depósitos de manera segura</p>
+        </div>
+        <div class="contenedor-inicio">
+            <div class="imagen-inicio">
+                <img src="./imagen-inicio.jpeg" alt="Bienvenido a TLA Company">
+            </div>
+            
+            <div class="formulario-acceso">
+                <h2 class="titulo-formulario">Iniciar Sesión</h2>
+                
+                <form id="formLogin">
+                    <div class="form-group">
+                        <label for="email" class="required">Correo Electrónico</label>
+                        <input type="email" id="email" name="email" class="form-input" placeholder="ejemplo@correo.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="required">Contraseña</label>
+                        <input type="password" id="password" name="password" class="form-input" placeholder="Ingresa tu contraseña" required>
+                    </div>
+                    
+                    <button type="submit" class="button" style="width: 100%;">Ingresar</button>
+                    
+                    <div class="opciones-adicionales">
+                        <a href="recuperar-contrasena.html" class="enlace-texto">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    
+                </form>
+                
+                <div class="registro-link">
+                    <p>¿No tienes una cuenta? <a href="./registrar-cliente.html" class="enlace-texto">Regístrate aquí</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p><strong>TLA Company</strong></p>
+        <p>Mantente Actualizado</p>
+    </footer>
+
+    <script>
+        document.getElementById('formLogin').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Verificando...';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Credenciales incorrectas');
+                }
+                
+                sessionStorage.setItem('usuario', JSON.stringify(result.usuario));
+                window.location.href = result.redirect || '/perfil.html';
+                
+            } catch (error) {
+                console.error('Error completo:', {
+                    error: error.message,
+                    stack: error.stack
+                });
+                
+                if (error.message.includes('Failed to fetch')) {
+                    alert('No se pudo conectar al servidor. Verifica tu conexión.');
+                } else if (error.message.includes('Error HTTP: 401')) {
+                    alert('Correo o contraseña incorrectos. ¿Quieres registrarte?');
+                    window.location.href = '/registrar-cliente.html';
+                } else {
+                    alert(`Error: ${error.message}`);
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Ingresar';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Cliente - TLA Company</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .password-wrapper input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            padding-right: 35px;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 16px;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .password-toggle:hover {
+            color: #2980b9;
+        }
+        
+        .password-toggle .eye-icon {
+            transition: opacity 0.3s;
+        }
+        
+        .password-toggle .eye-icon.hidden {
+            opacity: 0.5;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="password"] {
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        input[type="password"]:focus {
+            border-color: #2980b9;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(41, 128, 185, 0.2);
+        }
+        
+        .documento-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .documento-group select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .documento-group input {
+            flex: 2;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Estilos para la validación de contraseña */
+        #password-strength {
+            font-size: 13px;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+
+        .requirement {
+            color: #e74c3c;
+            margin: 3px 0;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .requirement.valid {
+            color: #21C7B1;
+        }
+
+        .requirement:before {
+            content: "✗";
+            margin-right: 8px;
+        }
+
+        .requirement.valid:before {
+            content: "✓";
+        }
+
+        .password-feedback {
+            margin-top: 5px;
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="./logo.png" alt="Banco" class="logo">
+            <span class="bank-name">TLA Co.</span>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="./inicio.html">Inicio</a></li>
+                <li><a href="cuentas.html">Cuentas</a></li>
+                <li class="right-icons">
+                    <button class="profile-btn" onclick="location.href='./perfil.html'">👤</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="main-content">
+        <h1>Ingresa tus datos para seguir</h1>
+        <p>Completa los campos para registrarse</p>
+        
+        <form id="registroCliente">
+            <div class="form-group">
+                <label for="nombres" class="required">Nombres</label>
+                <input type="text" onkeypress="return soloLetras(event)" id="nombres" name="nombres" placeholder="Nombres" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="apellidos" class="required">Apellidos</label>
+                <input type="text" onkeypress="return soloLetras(event)" id="apellidos" name="apellidos" placeholder="Apellidos" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Documento de Identidad</label>
+                <div class="documento-group">
+                    <select id="tipoDocumento" name="tipoDocumento" required>
+                        <option value="">Seleccione</option>
+                        <option value="DNI">DNI</option>
+                        <option value="Pasaporte">Pasaporte</option>
+                        <option value="CarnetExtranjeria">Carnet de Extranjería</option>
+                    </select>
+                    <input type="text" onkeypress="return soloNumeros(event)" id="numeroDocumento" name="numeroDocumento" placeholder="Número de documento" required>
+                </div>
+                <div id="documentoError" class="error-message"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email" class="required">Correo Electrónico</label>
+                <input type="email" id="email" name="email" placeholder="Ej: ejemplo@correo.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="required">Contraseña</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" 
+                           placeholder="Crea una contraseña segura" 
+                           title="La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y un caracter especial (. _ ! # $ % & /)"
+                           required>
+                    <button type="button" class="password-toggle" onclick="togglePasswordVisibility(this)" aria-label="Mostrar contraseña">
+                        <span class="eye-icon">👁️</span>
+                    </button>
+                </div>
+                <div id="password-strength">
+                    <div class="requirement" data-requirement="length">Mínimo 8 caracteres</div>
+                    <div class="requirement" data-requirement="lowercase">Al menos 1 letra minúscula</div>
+                    <div class="requirement" data-requirement="uppercase">Al menos 1 letra mayúscula</div>
+                    <div class="requirement" data-requirement="number">Al menos 1 número</div>
+                    <div class="requirement" data-requirement="special">Al menos 1 caracter especial (. _ ! # $ % & /)</div>
+                </div>
+                <div class="password-feedback">La contraseña debe cumplir con todos los requisitos de seguridad</div>
+            </div>
+
+            <div class="form-group">
+                <label for="celular" class="required">Número de Celular</label>
+                <input type="text" onkeypress="return soloNumeros(event)" id="celular" name="celular" pattern="[0-9]{9}" placeholder="Ej: 987654321" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="direccion" class="required">Dirección</label>
+                <input type="text" id="direccion" name="direccion" placeholder="Ej: Av. Arequipa 123" required>
+            </div>
+
+            <div style="display: flex; justify-content: center;">
+                <button type="submit" class="button">Registrarte</button>
+            </div>
+        </form>
+    </div>
+    
+    <footer>
+        <p><strong>TLA Company</strong></p>
+        <p>Mantente Actualizado</p>
+    </footer>
+
+    <script>
+        // Longitudes válidas para cada tipo de documento
+        const longitudesDocumento = {
+            'DNI': 8,
+            'Pasaporte': 12,
+            'CarnetExtranjeria': 12
+        };
+
+        function soloNumeros(e){
+            var key = e.keyCode || e.which;
+            var tecla = String.fromCharCode(key).toLowerCase();
+            var letras = "1234567890";
+            var especiales = [8, 37, 39, 46];
+            if (especiales.indexOf(key) !== -1){
+                return true;
+            }
+
+            if (letras.indexOf(tecla) === -1){
+                return false;
+            }
+            return true;
+        }
+
+        function soloLetras(e){
+            var key = e.keyCode || e.which;
+            var tecla = String.fromCharCode(key).toLowerCase();
+            var letras = "abcdefghijklmnñopqrstuvwxyz ";
+            var especiales = [8, 37, 39, 46]; // backspace, flecha izquierda, flecha derecha, suprimir
+            
+            if (especiales.indexOf(key) !== -1) {
+                return true;
+            }
+
+            // Permitir espacio solo si no es el primer carácter y no hay doble espacio
+            if (key === 32) { // código ASCII para espacio
+                var input = e.target;
+                if (input.selectionStart === 0 || input.value[input.selectionStart-1] === ' ') {
+                    return false;
+                }
+            }
+
+            if (letras.indexOf(tecla) === -1) {
+                return false;
+            }
+            return true;
+        }
+        
+        function togglePasswordVisibility(button) {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = button.querySelector('.eye-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.add('hidden');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('hidden');
+            }
+            
+            passwordInput.focus();
+        }
+
+        // Validar documento según tipo seleccionado
+        function validarDocumento() {
+            const tipoDocumento = document.getElementById('tipoDocumento').value;
+            const numeroDocumento = document.getElementById('numeroDocumento').value;
+            const errorElement = document.getElementById('documentoError');
+            
+            if (!tipoDocumento) {
+                errorElement.textContent = 'Seleccione un tipo de documento';
+                errorElement.style.display = 'block';
+                return false;
+            }
+            
+            const longitudRequerida = longitudesDocumento[tipoDocumento];
+            
+            if (numeroDocumento.length !== longitudRequerida) {
+                errorElement.textContent = `El ${tipoDocumento} debe tener ${longitudRequerida} dígitos`;
+                errorElement.style.display = 'block';
+                return false;
+            }
+            
+            errorElement.style.display = 'none';
+            return true;
+        }
+
+        // Función para validar la contraseña en tiempo real
+        function validarPassword(password) {
+            const requirements = {
+                length: password.length >= 8,
+                lowercase: /[a-z]/.test(password),
+                uppercase: /[A-Z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[._!#$%&/]/.test(password)
+            };
+            
+            return requirements;
+        }
+
+        // Función para actualizar la visualización de requisitos
+        function actualizarRequisitosPassword(password) {
+            const requirements = validarPassword(password);
+            let todosCumplidos = true;
+            
+            for (const [key, value] of Object.entries(requirements)) {
+                const element = document.querySelector(`.requirement[data-requirement="${key}"]`);
+                if (value) {
+                    element.classList.add('valid');
+                } else {
+                    element.classList.remove('valid');
+                    todosCumplidos = false;
+                }
+            }
+            
+            return todosCumplidos;
+        }
+
+        // Validación en tiempo real de la contraseña
+        document.getElementById('password').addEventListener('input', function() {
+            actualizarRequisitosPassword(this.value);
+        });
+
+        document.getElementById('registroCliente').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Validar documento antes de enviar
+            if (!validarDocumento()) {
+                return;
+            }
+
+            // Obtener todos los valores del formulario
+            const formData = {
+                nombres: document.getElementById('nombres').value.trim(),
+                apellidos: document.getElementById('apellidos').value.trim(),
+                tipoDocumento: document.getElementById('tipoDocumento').value,
+                numeroDocumento: document.getElementById('numeroDocumento').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                celular: document.getElementById('celular').value.trim(),
+                direccion: document.getElementById('direccion').value.trim(),
+                password: document.getElementById('password').value
+            };
+
+            // Validar que ningún campo obligatorio esté vacío
+            const camposObligatorios = ['nombres', 'apellidos', 'tipoDocumento', 'numeroDocumento', 'email', 'password'];
+            const campoFaltante = camposObligatorios.find(campo => !formData[campo]);
+
+            if (campoFaltante) {
+                alert(`Por favor complete el campo: ${campoFaltante}`);
+                return;
+            }
+
+            // Validar contraseña
+            if (!actualizarRequisitosPassword(formData.password)) {
+                alert('La contraseña no cumple con todos los requisitos de seguridad');
+                return;
+            }
+
+            try {
+                console.log('Enviando datos:', formData); // Para depuración
+                
+                const response = await fetch('http://localhost:3000/registrar-cliente', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                console.log('Respuesta del servidor:', response); // Para depuración
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al registrar');
+                }
+
+                const result = await response.json();
+                sessionStorage.setItem('usuario', JSON.stringify(result.usuario));
+                window.location.href = result.redirect || '/seleccionar-cuenta.html';
+                
+            } catch (error) {
+                console.error('Error completo:', {
+                    error: error.message,
+                    stack: error.stack
+                });
+                alert(`Error: ${error.message}`);
+            }
+        });
+
+        // Validar documento cuando cambia el tipo o el número
+        document.getElementById('tipoDocumento').addEventListener('change', validarDocumento);
+        document.getElementById('numeroDocumento').addEventListener('input', validarDocumento);
+    </script>
+</body>
+</html>

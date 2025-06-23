@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Cliente - TLA Company</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="./logo.png" alt="Banco" class="logo">
+            <span class="bank-name">TLA Co.</span>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="./inicio.html">Inicio</a></li>
+                <li><a href="cuentas.html">Cuentas</a></li>
+                <li><a href="./realizar-deposito.html">Depositar</a></li>
+                <li class="right-icons">
+                    <button class="profile-btn" onclick="location.href='./perfil.html'">👤</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+     <div class="main-content">
+        <h1>Realiza un Depósito</h1>
+        
+        <form id="formDeposito">
+            <div class="form-group">
+                <label for="cuenta" class="required">Número de Cuenta</label>
+                <input type="text" onkeypress="return soloNumeros(event)" id="cuenta" name="cuenta" placeholder="Ingrese número de cuenta" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="moneda" class="required">Moneda</label>
+                <select id="moneda" name="moneda" required onchange="actualizarSimboloMoneda()">
+                    <option value="">Seleccione moneda</option>
+                    <option value="soles">Soles (PEN)</option>
+                    <option value="dolares">Dólares (USD)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="monto" class="required">Monto a Depositar</label>
+                <div class="input-moneda">
+                    <span id="simbolo-moneda">S/</span>
+                    <input type="number" id="monto" name="monto" placeholder="Ej: 250.30" step="0.01" min="0" required oninput="calcularCambio()">
+                </div>
+            </div>
+
+            <div id="conversion-container" style="display: none;">
+                <p>Tipo de cambio: <span id="tipo-cambio">3.80</span> PEN/USD</p>
+                <p>Equivalente en <span id="moneda-destino">Soles</span>: 
+                <span id="monto-convertido">0.00</span> <span id="simbolo-destino">PEN</span></p>
+            </div>
+
+            <div class="form-group">
+                <label for="metodo" class="required">Método de Pago</label>
+                <select id="metodo" name="metodo" required>
+                    <option value="">Seleccione método de pago</option>
+                    <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                    <option value="Tarjeta">Tarjeta de Débito/Crédito</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Fecha del Depósito</label>
+                <div id="fecha-actual" class="fecha-display"></div>
+                <input type="hidden" id="fecha" name="fecha">
+            </div>
+            
+            <div style="display: flex; justify-content: center; margin-top: 30px;">
+                <button type="submit" class="button">Confirmar Depósito</button>
+            </div>
+        </form>
+        
+        <div class="metodos-pago">
+            <h3>Métodos de Pago Aceptados</h3>
+            <ul>
+                <li>Transferencia Bancaria</li>
+                <li>Tarjeta de Débito/Crédito</li>
+            </ul>
+        </div>
+    </div>
+    <footer>
+        <p><strong>TLA Company</strong></p>
+        <p>Mantente Actualizado</p>
+    </footer>
+    
+    <script>
+        function soloNumeros(e){
+            var key =e.keyCode || e.which;
+            var tecla = String.fromCharCode(key).toLowerCase();
+            var letras = "1234567890";
+            var especiales = [8, 37, 39, 46];
+            if (especiales.indexOf(key) !== -1){
+                return true;
+            }
+
+            if (letras.indexOf(tecla) === -1){
+                return false;
+            }
+            return true;
+        }
+        // Variable global para el tipo de cambio
+        const TIPO_CAMBIO = 3.80;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mostrar fecha actual
+            const fechaActual = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            
+            document.getElementById('fecha-actual').textContent = fechaActual.toLocaleDateString('es-PE', options);
+            document.getElementById('fecha').value = fechaActual.toISOString().split('T')[0];
+            
+            // Configurar tipo de cambio fijo
+            document.getElementById('tipo-cambio').textContent = TIPO_CAMBIO.toFixed(3);
+            
+            // Configurar manejador del formulario
+            const formDeposito = document.getElementById('formDeposito');
+            if (formDeposito) {
+                formDeposito.addEventListener('submit', handleSubmitDeposito);
+            }
+        });
+        
+        function actualizarSimboloMoneda() {
+            const moneda = document.getElementById('moneda').value;
+            const conversionContainer = document.getElementById('conversion-container');
+            
+            if (moneda === 'dolares') {
+                document.getElementById('simbolo-moneda').textContent = '$';
+                document.getElementById('moneda-destino').textContent = 'Soles';
+                document.getElementById('simbolo-destino').textContent = 'PEN';
+                conversionContainer.style.display = 'block';
+            } else if (moneda === 'soles') {
+                document.getElementById('simbolo-moneda').textContent = 'S/';
+                document.getElementById('moneda-destino').textContent = 'Dólares';
+                document.getElementById('simbolo-destino').textContent = 'USD';
+                conversionContainer.style.display = 'block';
+            } else {
+                conversionContainer.style.display = 'none';
+            }
+            calcularCambio();
+        }
+                
+        function calcularCambio() {
+            const moneda = document.getElementById('moneda').value;
+            const monto = parseFloat(document.getElementById('monto').value) || 0;
+            
+            if (moneda === 'dolares') {
+                const montoSoles = monto * TIPO_CAMBIO;
+                document.getElementById('monto-convertido').textContent = montoSoles.toFixed(2);
+            } else if (moneda === 'soles') {
+                const montoDolares = monto / TIPO_CAMBIO;
+                document.getElementById('monto-convertido').textContent = montoDolares.toFixed(2);
+            }
+        }
+        
+        async function handleSubmitDeposito(e) {
+            e.preventDefault();
+            
+            const cuenta = document.getElementById('cuenta').value;
+            const monto = parseFloat(document.getElementById('monto').value);
+            const moneda = document.getElementById('moneda').value;
+            const metodo = document.getElementById('metodo').value;
+            const fecha = document.getElementById('fecha').value;
+            
+            if (!cuenta || isNaN(monto) || monto <= 0 || !moneda || !metodo) {
+                alert('Por favor complete todos los campos correctamente');
+                return;
+            }
+            
+            try {
+                // 1. Verificar cuenta
+                const verification = await verifyAccount(cuenta);
+                
+                if (!verification.success) {
+                    throw new Error(verification.error || 'La cuenta no existe');
+                }
+
+                // 2. Preparar datos para el depósito
+                const depositoData = {
+                    numero_cuenta: cuenta,
+                    monto_origen: monto.toFixed(2),
+                    moneda_origen: moneda === 'soles' ? 'PEN' : 'USD',
+                    moneda_destino: verification.cuenta.tipo_moneda, // USD o PEN
+                    tipo_cambio: TIPO_CAMBIO,
+                    metodo_pago: metodo,
+                    fecha: fecha
+                };
+
+                // 3. Realizar el depósito
+                const depositoResult = await makeDeposit(depositoData);
+                
+                if (!depositoResult.success) {
+                    throw new Error(depositoResult.error || 'Error al realizar el depósito');
+                }
+
+                // 4. Preparar confirmación
+                const confirmacionData = {
+                    cuenta: cuenta,
+                    monto: monto.toFixed(2),
+                    moneda: moneda,
+                    montoConvertido: depositoResult.monto_convertido,
+                    metodo: metodo,
+                    fecha: fecha,
+                    tipoCambio: TIPO_CAMBIO,
+                    cliente: verification.cliente,
+                    saldoActual: depositoResult.saldo_actual,
+                    monedaDestino: verification.cuenta.tipo_moneda
+                };
+                
+                sessionStorage.setItem('depositoData', JSON.stringify(confirmacionData));
+                window.location.href = './deposito-confirm.html';
+                
+            } catch (error) {
+                console.error('Error en depósito:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+        
+        async function verifyAccount(accountNumber) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/verificar-cuenta?numero=${accountNumber}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error al verificar cuenta');
+                }
+                
+                return {
+                    success: true,
+                    cuenta: data.cuenta,
+                    cliente: data.cliente
+                };
+            } catch (error) {
+                console.error('Error verificando cuenta:', error);
+                throw new Error(`No se pudo verificar la cuenta: ${error.message}`);
+            }
+        }
+                
+        async function makeDeposit(depositData) {
+            try {
+                const response = await fetch('http://localhost:3000/api/realizar-deposito', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(depositData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Error en makeDeposit:', error);
+                throw new Error(`Error al realizar el depósito: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

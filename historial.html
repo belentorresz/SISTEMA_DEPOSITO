@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Cliente - TLA Company</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="./logo.png" alt="Banco" class="logo">
+            <span class="bank-name">TLA Co.</span>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="./inicio.html">Inicio</a></li>
+                <li><a href="cuentas.html">Cuentas</a></li>
+                <li><a href="./historial.html">Historial</a></li>
+                <li><a href="./realizar-deposito.html">Depositar</a></li>
+                <li class="right-icons">
+                    <img src="https://cdn-icons-png.flaticon.com/512/565/565422.png" alt="Notificaciones" class="notification-icon">
+                    <button class="profile-btn" onclick="location.href='./perfil.html'">👤</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    <div class="main-content">
+        <h1>Historial de Movimientos</h1>
+        
+        <div class="resumen-saldo">
+            <h2>Saldo Actual</h2>
+            <p class="monto-destacado">S/ 4,728.81</p>
+        </div>
+        
+        <div class="resumen-movimientos">
+            <div class="resumen-item">
+                <h3>Total Depósitos</h3>
+                <p class="monto-positivo">S/ 1,771.32</p>
+            </div>
+            
+            <div class="resumen-item">
+                <h3>Total Retiros/Pagos</h3>
+                <p class="monto-negativo">S/ 3,881.59</p>
+            </div>
+            
+            <div class="resumen-item">
+                <h3>Total Movimientos</h3>
+                <p class="monto-normal">25</p>
+            </div>
+        </div>
+        
+        <div class="filtros-historial">
+            <div class="filtro-fecha">
+                <label for="fecha-inicio">Fecha Inicio</label>
+                <input type="date" id="fecha-inicio" name="fecha-inicio">
+            </div>
+            
+            <div class="filtro-fecha">
+                <label for="fecha-fin">Fecha Fin</label>
+                <input type="date" id="fecha-fin" name="fecha-fin">
+            </div>
+            
+            <button class="button small">Aplicar Filtros</button>
+        </div>
+        
+        <div class="tabla-movimientos">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo de Movimiento</th>
+                        <th>Monto</th>
+                        <th>Saldo Final</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>06/03/2025</td>
+                        <td>Transferencia</td>
+                        <td class="monto-negativo">- S/ 271.19</td>
+                        <td>S/ 4,728.81</td>
+                    </tr>
+                    <tr>
+                        <td>05/12/2025</td>
+                        <td>Depósito</td>
+                        <td class="monto-positivo">+ S/ 102.09</td>
+                        <td>S/ 4,830.00</td>
+                    </tr>
+                    <tr>
+                        <td>19/01/2025</td>
+                        <td>Depósito</td>
+                        <td class="monto-positivo">+ S/ 436.75</td>
+                        <td>S/ 5,267.65</td>
+                    </tr>
+                    <tr>
+                        <td>12/12/2025</td>
+                        <td>Depósito</td>
+                        <td class="monto-positivo">+ S/ 126.66</td>
+                        <td>S/ 4,884.97</td>
+                    </tr>
+                    <tr>
+                        <td>11/08/2025</td>
+                        <td>Depósito</td>
+                        <td class="monto-positivo">+ S/ 312.91</td>
+                        <td>S/ 3,997.61</td>
+                    </tr>
+                    <tr>
+                        <td>11/02/2025</td>
+                        <td>Retiro</td>
+                        <td class="monto-negativo">- S/ 396.12</td>
+                        <td>S/ 4,871.53</td>
+                    </tr>
+                    <tr>
+                        <td>11/01/2025</td>
+                        <td>Transferencia</td>
+                        <td class="monto-negativo">- S/ 406.10</td>
+                        <td>S/ 4,318.06</td>
+                    </tr>
+                    <tr>
+                        <td>09/02/2025</td>
+                        <td>Pago</td>
+                        <td class="monto-negativo">- S/ 160.81</td>
+                        <td>S/ 4,724.16</td>
+                    </tr>
+                    <tr>
+                        <td>05/02/2025</td>
+                        <td>Pago</td>
+                        <td class="monto-negativo">- S/ 38.77</td>
+                        <td>S/ 3,861.57</td>
+                    </tr>
+                    <tr>
+                        <td>04/10/2025</td>
+                        <td>Depósito</td>
+                        <td class="monto-positivo">+ S/ 311.43</td>
+                        <td>S/ 2,873.40</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="paginacion">
+            <a href="#" class="pagina-link">‹ Previous</a>
+            <a href="#" class="pagina-link active">1</a>
+            <a href="#" class="pagina-link">2</a>
+            <a href="#" class="pagina-link">3</a>
+            <a href="#" class="pagina-link">Next ›</a>
+        </div>
+    </div>
+    <footer>
+        <p><strong>TLA Company</strong></p>
+        <p>Mantente Actualizado</p>
+    </footer>
+    <script src="./script.js"></script>
+</body>
+</html>
